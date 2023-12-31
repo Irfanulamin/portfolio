@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+#root {
+  width: 100%;
+  max-width: 80rem;
+  margin: 0px auto;
+  padding: 0rem 3rem;
+  color: black;
+}
+
+* {
+  font-family: "Poppins", sans-serif;
+}
+
+.custom_transition {
+  transition: all ease 0.3s;
+}
+
+.custom_transition2 {
+  transition: all ease 2s;
+}
