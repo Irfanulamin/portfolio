@@ -4,18 +4,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@property --wash-radius {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 :root {
   color-scheme: dark;
 
-  /* The only three colors in the system */
   --black: #0c0a09;
   --cream: #f5f1ea;
   --primary: #d65a31;
-  /* Opaque off-white shade of cream. Alpha-blending cream toward the page
-     turns it grey; this keeps the warmth while sitting below full brightness. */
   --cream-dim: #e6e1d6;
 
-  /* shadcn semantic tokens — derived from black/cream only */
   --background: var(--black);
   --foreground: var(--cream);
   --card: color-mix(in srgb, var(--cream) 4%, var(--black));
@@ -78,8 +80,58 @@
   }
 }
 
-/* Replaces the browser's default blue/white highlight. Outside @layer base so
-   it is not competing with utility specificity. */
+.wash {
+  transition: --wash-radius 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wash-text {
+  background-image: radial-gradient(
+    circle at var(--wash-x, 0px) var(--wash-y, 0px),
+    var(--primary) 0 var(--wash-radius),
+    var(--cream) var(--wash-radius)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  padding-block: 0.3em;
+  margin-block: -0.3em;
+}
+
+.wash-chip {
+  background-image: radial-gradient(
+    circle at var(--wash-x, 0px) var(--wash-y, 0px),
+    var(--cream) 0 var(--wash-radius),
+    transparent var(--wash-radius)
+  );
+  isolation: isolate;
+}
+
+.wash-chip > * {
+  mix-blend-mode: difference;
+}
+
+.dim-siblings > * {
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1) 140ms;
+}
+
+.dim-siblings:has(> :hover) > :not(:hover) {
+  opacity: 0.82;
+  transition-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dim-siblings > * {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wash {
+    transition: none;
+  }
+}
+
 ::selection {
   background: var(--primary);
   color: var(--black);

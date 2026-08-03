@@ -3,9 +3,7 @@ export type Role = {
   title: string;
   logo: string;
   location: string;
-  /* "YYYY-MM" */
   start: string;
-  /* "YYYY-MM", or null while ongoing */
   end: string | null;
 };
 
@@ -33,7 +31,6 @@ const MONTHS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-/** Absolute month index, so arithmetic never crosses a year boundary wrong. */
 function toMonthIndex(ym: string): number {
   const [year, month] = ym.split("-").map(Number);
   return year * 12 + month;
@@ -49,19 +46,16 @@ function label(ym: string): string {
   return `${MONTHS[month - 1]} ${year}`;
 }
 
-/** Inclusive of both endpoints: Dec 2024 – Mar 2025 counts as 4 months. */
 export function tenureMonths(role: Role): number {
   const end = role.end ? toMonthIndex(role.end) : currentMonthIndex();
   return end - toMonthIndex(role.start) + 1;
 }
 
-/** Months from the earliest role's start date to today, inclusive. */
 export function careerMonths(): number {
   const earliest = Math.min(...roles.map((r) => toMonthIndex(r.start)));
   return currentMonthIndex() - earliest + 1;
 }
 
-/** Whole months strictly between two roles — the unworked stretch. */
 export function gapMonths(earlierEnd: string, laterStart: string): number {
   return toMonthIndex(laterStart) - toMonthIndex(earlierEnd) - 1;
 }

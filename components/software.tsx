@@ -10,10 +10,7 @@ export function Software() {
         <p className="text-base text-cream/60">What I use daily.</p>
       </div>
 
-      {/* Opaque off-white fill — light enough that the pure-black marks
-          (Next.js, shadcn/ui, Three.js) stay legible, without glaring.
-          Free-flowing wrap, not a grid. */}
-      <ul className="flex flex-wrap gap-2">
+      <ul className="dim-siblings flex flex-wrap gap-2">
         {software.map(({ name, Icon }) => (
           <li
             key={name}

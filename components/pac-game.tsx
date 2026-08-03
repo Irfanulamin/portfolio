@@ -5,13 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/* 15x11 — 68 open cells, so 67 pellets once the spawn cell is eaten.
-   Verified: fully connected, zero dead ends.
-
-   Shape matters as much as the count. Two mirrored chambers open off the
-   centre column, wide plazas run left and right, and the spine pinches to a
-   single lane at row 5 — so routes vary in width and there are commit points,
-   rather than one uniform lattice where every junction looks like the last. */
 const MAZE = [
   "###############",
   "#......#......#",
@@ -30,7 +23,7 @@ const H = 11;
 const CELL = 36;
 const PLAYER_START = { x: 1, y: 9 };
 const GHOST_START = { x: 7, y: 3 };
-const PLAYER_SPEED = 5.2; // cells per second
+const PLAYER_SPEED = 5.2; 
 const GHOST_SPEED = 4.0;
 
 type Dir = { x: number; y: number };
@@ -63,8 +56,6 @@ const KEY_TO_CAP: Record<string, string> = {
 
 const open = (x: number, y: number) => MAZE[y]?.[x] === ".";
 
-/* 8x8 sprites. '#' is body, 'o' is punched through to the background. Drawn as
-   discrete squares so the characters stay chunky and aliased on purpose. */
 const SPRITE_UNIT = CELL / 10;
 
 const PLAYER_OPEN = [
@@ -147,17 +138,14 @@ const py = (e: Ent) => (e.cy + (e.ty - e.cy) * e.prog + 0.5) * CELL;
 function totalPellets(): number {
   let n = 0;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (open(x, y)) n++;
-  return n - 1; // player start cell is eaten on spawn
+  return n - 1; 
 }
 const TOTAL = totalPellets();
 
 type Phase = "idle" | "playing" | "won" | "lost";
 
-/* How long the victory chomp takes to cross the board. */
 const VICTORY_MS = 2200;
 
-/* Palette hexes, read once from the stylesheet so the canvas tracks the tokens
-   in globals.css rather than duplicating them. */
 const FALLBACK = {
   black: "#0c0a09",
   cream: "#f5f1ea",
@@ -188,21 +176,13 @@ function Keycap({
     <button
       type="button"
       aria-label={aria}
-      /* pointerdown beats click on touch, and preventDefault keeps focus on the
-         board so the keyboard keeps working alongside the pad */
       onPointerDown={(e) => {
         e.preventDefault();
         onPress();
       }}
-      /* Mechanical keycap built from three stacked cues:
-         1. a 5px solid skirt  — the key's side wall
-         2. an ambient drop    — the shadow it casts on the board
-         3. a top-edge inset   — the catch-light on the moulded lip
-         The face is a vertical gradient so it reads as a dished surface rather
-         than a flat rectangle. Travel equals skirt height exactly, so pressing
-         seats the cap on the board instead of sinking through it. */
       className={cn(
-        "grid size-10 select-none place-items-center rounded-[7px] font-mono text-xs",
+        "grid size-12 select-none place-items-center rounded-[7px] font-mono text-sm",
+        "sm:size-10 sm:text-xs",
         "transition-[transform,box-shadow,background-color,color] duration-90 ease-out",
         "active:translate-y-[5px]",
         "active:shadow-[0_0_0_0_#9a9488,0_1px_2px_0_rgba(0,0,0,0.5)]",
@@ -230,13 +210,9 @@ export function PacGame() {
   const [score, setScore] = useState(0);
   const [pressedCap, setPressedCap] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
-  /* True while the victory animation plays, before the result panel appears. */
   const [celebrating, setCelebrating] = useState(false);
-  /* How many result lines have "typed" out — drives the console printout. */
   const [printed, setPrinted] = useState(0);
 
-  /* Seeded from the same constants the maze is validated against — hardcoding
-     these separately let them drift onto a wall when the maze changed. */
   const player = useRef<Ent>({
     cx: PLAYER_START.x,
     cy: PLAYER_START.y,
@@ -280,24 +256,17 @@ export function PacGame() {
 
     palette.current = {
       bg: black,
-      /* Flat blackish-grey blocks. The maze is scenery — the sprites and dots
-         carry the detail, so any texture here just competes with them. */
       wall: withAlpha(cream, 0.06),
-      /* Solid off-white, not a faint tint — the dots are the thing you're
-         hunting, so they should read first. */
       pellet: creamDim,
       player: primary,
       ghost: withAlpha(cream, 0.55),
     };
   }, []);
 
-  // Draw the idle board once on mount and whenever phase leaves 'playing'.
-  // 'won' is excluded — the victory loop owns the canvas while it runs.
   useEffect(() => {
     if (phase !== "playing" && phase !== "won") draw(performance.now());
   }, [phase]);
 
-  /* Victory lap: a big sprite chomps a row of dots clean across the board. */
   useEffect(() => {
     if (phase !== "won") return;
 
@@ -334,7 +303,6 @@ export function PacGame() {
     const progress = Math.min(elapsedMs / VICTORY_MS, 1);
     const cx = -span + (w + span * 2) * progress;
 
-    // dots still ahead of the sprite
     ctx.fillStyle = c.pellet;
     for (let x = CELL; x < w; x += CELL) {
       if (x < cx) continue;
@@ -356,9 +324,6 @@ export function PacGame() {
     );
   }
 
-  /* Print the result lines one at a time, like output streaming to a terminal.
-     The counter is reset by whoever changes phase, not here — resetting state
-     synchronously inside an effect triggers a cascading render. */
   useEffect(() => {
     if (phase !== "won" && phase !== "lost") return;
     const timers = [1, 2, 3].map((n) =>
@@ -389,7 +354,6 @@ export function PacGame() {
       }
     }
 
-    // player: pixel sprite, chomping and rotated to face its direction
     const p = player.current;
     const ang = p.dir ? Math.atan2(p.dir.y, p.dir.x) : 0;
     const chomping = Math.sin(now / 90) > 0;
@@ -403,7 +367,6 @@ export function PacGame() {
       ang,
     );
 
-    // ghost: pixel sprite, never rotated — its eyes should stay upright
     const g = ghost.current;
     drawSprite(ctx, GHOST, px(g), py(g), c.ghost, c.bg);
   }
@@ -442,7 +405,7 @@ export function PacGame() {
       const k = `${p.cx},${p.cy}`;
       if (!eaten.current.has(k)) {
         eaten.current.add(k);
-        setScore(eaten.current.size - 1); // start cell does not count
+        setScore(eaten.current.size - 1); 
         if (eaten.current.size - 1 >= TOTAL) {
           finish("won");
           stopped = true;
@@ -474,8 +437,6 @@ export function PacGame() {
           : [];
       if (!pool.length) return;
       let pick: Dir;
-      /* Chases most junctions, wanders the rest — enough unpredictability that
-         you cannot just hold one loop, without it being relentless. */
       if (Math.random() < 0.68) {
         pick = pool.reduce((best, d) => {
           const dist = (dd: Dir) =>
@@ -497,7 +458,6 @@ export function PacGame() {
       last = now;
 
       const p = player.current;
-      // start moving from rest when a queued direction opens up
       if (!p.dir && queued.current) {
         const q = queued.current;
         if (open(p.cx + q.x, p.cy + q.y)) {
@@ -506,7 +466,6 @@ export function PacGame() {
           p.ty = p.cy + q.y;
         }
       }
-      // instant reverse feels right in pac-likes
       if (
         p.dir &&
         queued.current &&
@@ -600,21 +559,7 @@ export function PacGame() {
       ];
 
   return (
-    <section id="play" className="scroll-mt-24 space-y-6 pt-14">
-      <div className="space-y-2">
-        <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-cream">
-          Playground
-        </h2>
-        <p className="text-base text-cream/60">
-          A tiny arcade break. Clear every token, outrun the bug.
-        </p>
-      </div>
-
-      {/* Terminal chrome — the whole thing reads as a program you ran. */}
-      {/* The whole window scales down and centres, so the chrome, board and
-          controls stay in proportion. Full width on phones, where 70% of an
-          already narrow column would be unplayable. */}
-      <div className="w-full max-w-md overflow-hidden rounded-xl border border-cream/15 bg-cream/[0.02] font-mono text-xs">
+    <div className="w-full max-w-md overflow-hidden rounded-xl border border-cream/15 bg-cream/[0.02] font-mono text-xs">
         <div className="flex items-center gap-2 border-b border-cream/10 px-4 py-2.5">
           <span className="flex gap-1.5">
             <span className="size-2.5 rounded-full bg-primary/70" />
@@ -638,8 +583,6 @@ export function PacGame() {
             ref={frameRef}
             tabIndex={0}
             aria-label="Maze mini game. Move the cursor with arrow keys or WASD, collect every token, and avoid the bug."
-            /* Fills the window again — the window itself is what's smaller now,
-               so the board no longer floats inside an oversized frame. */
             className={`relative overflow-hidden rounded-lg border outline-none transition-colors duration-500 ${
               won ? "border-primary" : "border-cream/10 focus-visible:border-primary"
             }`}
@@ -651,8 +594,6 @@ export function PacGame() {
               className="block h-auto w-full"
             />
 
-            {/* Held back while the victory chomp plays, so the animation isn't
-                covered by its own result panel. */}
             {phase !== "playing" && !celebrating && (
               <div className="absolute inset-0 grid place-items-center gap-3 bg-black/70 backdrop-blur-[2px]">
                 <div className="flex flex-col items-center gap-3">
@@ -667,8 +608,6 @@ export function PacGame() {
                     </p>
                   )}
 
-                  {/* Same outline-pill language as the social links, so the page
-                      has one button, not two competing ones. */}
                   <button
                     type="button"
                     onClick={start}
@@ -702,10 +641,9 @@ export function PacGame() {
                 </span>
               </p>
 
-              {/* Result streams in line by line, like stdout. */}
-              {over && (
-                <div className="space-y-0.5 pt-1">
-                  {resultLines.slice(0, printed).map((line, i) => (
+              <div className="min-h-14 space-y-0.5 pt-1">
+                {over &&
+                  resultLines.slice(0, printed).map((line, i) => (
                     <p
                       key={line}
                       className={
@@ -719,11 +657,10 @@ export function PacGame() {
                       {line}
                     </p>
                   ))}
-                </div>
-              )}
+              </div>
             </div>
 
-            <div className="grid w-[132px] grid-cols-3 gap-1.5 select-none">
+            <div className="mx-auto grid w-[156px] shrink-0 grid-cols-3 gap-1.5 select-none sm:mx-0 sm:w-[132px]">
               <span />
               <Keycap
                 label="W"
@@ -753,7 +690,6 @@ export function PacGame() {
             </div>
           </div>
         </div>
-      </div>
-    </section>
+    </div>
   );
 }

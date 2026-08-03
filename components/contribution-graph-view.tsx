@@ -10,8 +10,6 @@ import {
 } from "@/components/kibo-ui/contribution-graph";
 import type { Activity } from "@/lib/github";
 
-/* Levels ramp through the accent instead of GitHub's green, so the graph
-   stays inside the page's palette. */
 const BLOCK_FILL = [
   'data-[level="0"]:fill-cream/10',
   'data-[level="1"]:fill-primary/30',
@@ -25,11 +23,6 @@ type Props = {
   total: number;
 };
 
-/**
- * Client boundary. The sub-components take render props, and functions cannot
- * cross from a Server Component into a Client Component — so the callbacks
- * have to be defined on this side.
- */
 export function ContributionGraphView({ activities, total }: Props) {
   return (
     <ContributionGraph
@@ -40,9 +33,6 @@ export function ContributionGraphView({ activities, total }: Props) {
       fontSize={11}
       className="w-full text-cream/40"
     >
-      {/* The SVG carries a viewBox, so overriding its width to 100% scales the
-          whole calendar to the container instead of scrolling it. The component
-          ships overflow-x-auto by default — overflow-x-visible removes it. */}
       <ContributionGraphCalendar className="overflow-x-visible [&>svg]:h-auto [&>svg]:w-full">
         {(props) => <ContributionGraphBlock {...props} className={BLOCK_FILL} />}
       </ContributionGraphCalendar>

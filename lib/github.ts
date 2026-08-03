@@ -9,12 +9,6 @@ export type Contributions = {
   total: number;
 };
 
-/**
- * GitHub's contribution calendar is not exposed by the public REST API — the
- * official route is the GraphQL API, which requires a personal access token.
- * This proxy serves the same data unauthenticated, already shaped as
- * { date, count, level }.
- */
 export async function getContributions(user: string): Promise<Contributions> {
   try {
     const response = await fetch(
@@ -30,7 +24,6 @@ export async function getContributions(user: string): Promise<Contributions> {
       total: data.total?.lastYear ?? 0,
     };
   } catch {
-    /* A third-party outage should drop the section, never break the page. */
     return { activities: [], total: 0 };
   }
 }

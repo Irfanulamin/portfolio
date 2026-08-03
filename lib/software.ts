@@ -23,8 +23,6 @@ export type Tool = {
   Icon: React.ComponentType<{ className?: string; color?: string }>;
 };
 
-/* Grouped loosely by layer — languages, runtime/backend, frontend, data,
-   tooling — so the list stays scannable as it grows. */
 export const software: Tool[] = [
   { name: "TypeScript", Icon: SiTypescript },
   { name: "Python", Icon: SiPython },

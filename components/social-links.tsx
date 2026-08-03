@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import { cn } from "@/lib/utils";
+import { useWash } from "@/lib/use-wash";
 import { buttonVariants } from "@/components/ui/button";
 
 const EMAIL = "irfanulamin10@gmail.com";
@@ -20,7 +21,6 @@ type Social = {
     className?: string;
     weight?: "thin" | "light" | "regular" | "bold" | "fill" | "duotone";
   }>;
-  /* Exactly one of these: a link out, or a value to put on the clipboard. */
   href?: string;
   copy?: string;
 };
@@ -46,10 +46,44 @@ const socials: Social[] = [
 
 const CHIP = cn(
   buttonVariants({ variant: "outline", size: "sm" }),
-  "h-8 gap-1.5 rounded-full border-cream/25 bg-transparent px-3.5",
-  "hover:border-cream hover:bg-cream hover:text-black",
+  "wash wash-chip h-8 gap-1.5 rounded-full border-cream/25 bg-transparent px-3.5",
+  "hover:border-cream hover:bg-transparent hover:text-cream",
   "[&_svg]:size-4",
 );
+
+function Chip({ social, onCopy }: { social: Social; onCopy: () => void }) {
+  const { label, href, copy, icon: Icon } = social;
+  const wash = useWash();
+
+  const content = (
+    <>
+      <Icon weight="fill" />
+      <span>{label}</span>
+    </>
+  );
+
+  return copy ? (
+    <button
+      type="button"
+      onClick={onCopy}
+      aria-label={`Copy email address ${copy}`}
+      className={CHIP}
+      {...wash}
+    >
+      {content}
+    </button>
+  ) : (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className={CHIP}
+      {...wash}
+    >
+      {content}
+    </a>
+  );
+}
 
 export function SocialLinks() {
   const [copied, setCopied] = useState(false);
@@ -68,44 +102,18 @@ export function SocialLinks() {
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* Clipboard blocked (insecure context or denied permission) — say nothing
-         rather than claim a copy that did not happen. */
+      setCopied(false);
     }
   }
 
   return (
     <>
       <nav className="flex flex-wrap gap-2 pt-2">
-        {socials.map(({ label, href, copy, icon: Icon }) =>
-          copy ? (
-            <button
-              key={label}
-              type="button"
-              onClick={copyEmail}
-              aria-label={`Copy email address ${copy}`}
-              className={CHIP}
-            >
-              <Icon weight="fill" />
-              {label}
-            </button>
-          ) : (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noreferrer"
-              className={CHIP}
-            >
-              <Icon weight="fill" />
-              {label}
-            </a>
-          ),
-        )}
+        {socials.map((social) => (
+          <Chip key={social.label} social={social} onCopy={copyEmail} />
+        ))}
       </nav>
 
-      {/* Toast shows the value it put on the clipboard, so there's no doubt
-          about what was copied. Dark to sit on the page rather than flash
-          against it — the light pill read as an alert. */}
       <div
         aria-live="polite"
         className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-6"

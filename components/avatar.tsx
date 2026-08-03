@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useState } from "react";
 
 const SIZE = 70;
-/* easeOutQuint — spreads quickly, then settles over a long tail like water
-   losing momentum. */
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 const DURATION = 1400;
 
@@ -13,9 +12,7 @@ export function Avatar() {
   const [origin, setOrigin] = useState({ x: SIZE / 2, y: SIZE / 2 });
   const [active, setActive] = useState(false);
 
-  /* Track the pointer on both enter and leave, so the wash spreads from where it
-     landed and later drains back toward wherever the cursor actually left. */
-  const trackPointer = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+  const trackPointer = useCallback((event: React.MouseEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     return {
       x: event.clientX - rect.left,
@@ -24,8 +21,10 @@ export function Avatar() {
   }, []);
 
   return (
-    <div
-      className="relative size-[70px] shrink-0"
+    <Link
+      href="/"
+      aria-label="Back to top"
+      className="relative block size-[70px] shrink-0"
       onMouseEnter={(event) => {
         setOrigin(trackPointer(event));
         setActive(true);
@@ -44,8 +43,6 @@ export function Avatar() {
           priority
           className="object-cover"
         />
-        {/* Same file as the layer beneath — the browser reuses the decoded image,
-            so the grayscale copy costs no extra request. */}
         <Image
           src="/profile.jpg"
           alt=""
@@ -60,6 +57,6 @@ export function Avatar() {
           }}
         />
       </div>
-    </div>
+    </Link>
   );
 }

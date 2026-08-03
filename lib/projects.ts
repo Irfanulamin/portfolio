@@ -8,7 +8,6 @@ export type Project = {
 export const projects: Project[] = [
   {
     name: "MidnightUX",
-    /* PLACEHOLDER — invented copy. Replace with what you actually did here. */
     description:
       "A design and development studio building brand-led sites and product interfaces. Worked across the front end, from layout and motion through to production deployment.",
     href: "https://www.midnightux.com/",

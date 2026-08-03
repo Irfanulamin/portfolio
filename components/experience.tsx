@@ -1,6 +1,11 @@
 import Image from "next/image";
 
-import { formatDuration, formatRange, roles, tenureMonths } from "@/lib/experience";
+import {
+  formatDuration,
+  formatRange,
+  roles,
+  tenureMonths,
+} from "@/lib/experience";
 
 export function Experience() {
   return (
@@ -12,10 +17,10 @@ export function Experience() {
         <p className="text-base text-cream/60">Companies I&apos;ve worked with.</p>
       </div>
 
-      <ol className="space-y-3">
+      <ol className="dim-siblings space-y-3">
         {roles.map((role, i) => (
           <li key={role.company}>
-            <div className="flex items-start gap-4">
+            <div className="-mx-3 flex items-start gap-4 rounded-xl px-3 py-2 transition-colors duration-300 hover:bg-cream/[0.04]">
               <Image
                 src={role.logo}
                 alt=""
@@ -25,8 +30,6 @@ export function Experience() {
                 className="size-10 shrink-0 rounded-lg object-contain"
               />
 
-              {/* Dates sit in their own right-aligned column so the row reads as
-                  a ledger instead of trailing off into empty space. */}
               <div className="flex min-w-0 flex-1 flex-col gap-1 text-base leading-normal sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                 <div className="min-w-0 space-y-0.5">
                   <p className="font-medium text-cream">{role.company}</p>
@@ -43,7 +46,6 @@ export function Experience() {
               </div>
             </div>
 
-            {/* Connector between roles, centred under the 40px logo column. */}
             {i < roles.length - 1 && (
               <div
                 aria-hidden
