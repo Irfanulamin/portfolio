@@ -11,7 +11,7 @@ export function Footer() {
         {/* A live-feeling status rather than a number. The ping keeps the
             "something is running" quality of a clock without being one. */}
         <p className="font-mono">
-          Ruf
+          Progress Over Perfection
         </p>
       </div>
     </footer>
