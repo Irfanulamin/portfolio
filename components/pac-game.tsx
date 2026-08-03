@@ -614,7 +614,7 @@ export function PacGame() {
       {/* The whole window scales down and centres, so the chrome, board and
           controls stay in proportion. Full width on phones, where 70% of an
           already narrow column would be unplayable. */}
-      <div className="mx-auto w-full max-w-md overflow-hidden rounded-xl border border-cream/15 bg-cream/[0.02] font-mono text-xs">
+      <div className="w-full max-w-md overflow-hidden rounded-xl border border-cream/15 bg-cream/[0.02] font-mono text-xs">
         <div className="flex items-center gap-2 border-b border-cream/10 px-4 py-2.5">
           <span className="flex gap-1.5">
             <span className="size-2.5 rounded-full bg-primary/70" />

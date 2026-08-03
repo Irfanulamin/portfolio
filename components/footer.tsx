@@ -2,7 +2,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-24 pt-8">
+    <footer className="mt-18 pt-8">
       <div className="flex flex-col gap-2 text-sm text-cream/35 sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {year} Irfanul Amin Maruf

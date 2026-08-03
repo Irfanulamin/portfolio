@@ -39,8 +39,8 @@ export default function Home() {
           <Experience />
           <Projects />
           <Software />
-          <Contributions />
           <PacGame />
+          <Contributions />
           <Footer />
         </div>
       </main>
