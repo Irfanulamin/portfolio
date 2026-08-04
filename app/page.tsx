@@ -13,12 +13,11 @@ export const revalidate = 86400;
 export default function Home() {
   return (
     <>
-      <main id="top" className="px-6 pt-20 pb-4">
+      <main id="top" className="px-6 pt-16 pb-4">
         <div className="mx-auto w-full max-w-2xl space-y-6 text-lg leading-relaxed">
           <Nav />
           <Banner />
           <SocialLinks />
-
           <Reveal>
             <Experience />
           </Reveal>
