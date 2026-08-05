@@ -1,4 +1,5 @@
 import { ContributionGraphView } from "@/components/contribution-graph-view";
+import { Section } from "@/components/section";
 import { getContributions } from "@/lib/github";
 
 export async function Contributions() {
@@ -7,15 +8,12 @@ export async function Contributions() {
   if (activities.length === 0) return null;
 
   return (
-    <section id="contri" className="scroll-mt-24 space-y-6 pt-14">
-      <div className="space-y-2">
-        <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-cream">
-          Contributions
-        </h2>
-        <p className="text-base text-cream/60">What I&apos;ve been shipping.</p>
-      </div>
-
+    <Section
+      id="contri"
+      label="Contributions"
+      description="What I've been shipping."
+    >
       <ContributionGraphView activities={activities} total={total} />
-    </section>
+    </Section>
   );
 }

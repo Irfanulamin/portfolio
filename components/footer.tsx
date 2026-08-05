@@ -4,7 +4,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-16">
+    <footer className="mt-20 border-t border-cream/10 pt-6">
       <div className="flex items-center justify-between gap-4 text-sm text-cream/35">
         <p>© {year} Irfanul Amin Maruf</p>
 

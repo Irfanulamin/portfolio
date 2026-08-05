@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Irfanul Amin Maruf",
+  description:
+    "Junior software engineer at CreateDevs, finishing a BSc in CSE at Southeast University. Work, projects, and the stack I build with.",
 };
 
 export default function RootLayout({

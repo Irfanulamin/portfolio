@@ -47,7 +47,7 @@ const socials: Social[] = [
 const CHIP = cn(
   buttonVariants({ variant: "outline", size: "sm" }),
   "wash wash-chip h-8 gap-1.5 rounded-full border-cream/25 bg-transparent px-3.5",
-  "hover:border-cream hover:bg-transparent hover:text-cream",
+  "hover:bg-transparent hover:text-cream",
   "[&_svg]:size-4",
 );
 
@@ -108,7 +108,10 @@ export function SocialLinks() {
 
   return (
     <>
-      <nav className="flex flex-wrap gap-2 pt-2">
+      <nav
+        aria-label="Elsewhere"
+        className="mt-6 flex flex-wrap gap-2"
+      >
         {socials.map((social) => (
           <Chip key={social.label} social={social} onCopy={copyEmail} />
         ))}
@@ -123,9 +126,9 @@ export function SocialLinks() {
             <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary">
               <Check weight="bold" className="size-3 text-black" />
             </span>
-            <p className="text-sm text-cream">
-              Copied{" "}
-              <span className="font-mono text-cream/50 pl-4">{"  "}{EMAIL}</span>
+            <p className="flex items-center gap-2 text-sm text-cream">
+              Copied
+              <span className="font-mono text-cream/50">{EMAIL}</span>
             </p>
           </div>
         )}

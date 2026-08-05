@@ -14,41 +14,55 @@ export const metadata: Metadata = {
 
 export default function Play() {
   return (
-    <main className="px-6 pt-20 pb-16">
-      <div className="mx-auto w-full max-w-2xl space-y-6 text-lg leading-relaxed">
+    <main className="px-6 py-12">
+      <div className="mx-auto w-full max-w-2xl">
         <Nav />
 
-        <Reveal>
-          <div className="space-y-4">
-            <h1 className="text-[18px] font-medium text-cream">dot-run</h1>
-            <p>
-              I built this one on my own over three days. There was no reason
-              beyond wanting to. I got curious about what a mini game actually
-              takes to make, so I sat down and made one.
-            </p>
-            <p className="text-cream/60 text-[16px]">
-              Clear every token before the bug catches you. Arrow keys or WASD
-              on a keyboard, the pad below on a phone.
-            </p>
-          </div>
-        </Reveal>
+        <div className="mt-12">
+          <Reveal>
+            <header className="space-y-6">
+              <div className="space-y-1.5">
+                <h1 className="text-xl font-medium tracking-tight text-cream">
+                  dot-run
+                </h1>
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary">
+                  Sidequest
+                </p>
+              </div>
 
-        <Reveal delay={0.08}>
-          <PacGame />
-        </Reveal>
+              <div className="space-y-4 text-[17px] leading-relaxed text-cream/85">
+                <p>
+                  I built this one on my own over three days. There was no
+                  reason beyond wanting to. I got curious about what a mini game
+                  actually takes to make, so I sat down and made one.
+                </p>
+                <p className="text-base text-cream/55">
+                  Clear every token before the bug catches you. Arrow keys or
+                  WASD on a keyboard, the pad below on a phone.
+                </p>
+              </div>
+            </header>
+          </Reveal>
 
-        <Reveal delay={0.12}>
-          <Link
-            href="/"
-            className="group inline-flex items-center gap-2 font-mono text-sm text-cream/50 transition-colors duration-300 hover:text-cream"
-          >
-            <ArrowLeftIcon
-              weight="bold"
-              className="size-3.5 text-primary/60 transition-colors duration-300 group-hover:text-primary"
-            />
-            back to the rest of it
-          </Link>
-        </Reveal>
+          <Reveal delay={0.08}>
+            <div className="mt-12">
+              <PacGame />
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.12}>
+            <Link
+              href="/"
+              className="group mt-12 inline-flex items-center gap-2 font-mono text-sm text-cream/50 transition-colors duration-300 hover:text-cream"
+            >
+              <ArrowLeftIcon
+                weight="bold"
+                className="size-3.5 text-primary/60 transition-colors duration-300 group-hover:text-primary"
+              />
+              back to the rest of it
+            </Link>
+          </Reveal>
+        </div>
       </div>
     </main>
   );
