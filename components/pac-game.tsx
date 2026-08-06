@@ -1,30 +1,113 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  ArrowClockwiseIcon,
+  ArrowCounterClockwiseIcon,
+  ArrowRightIcon,
+} from "@phosphor-icons/react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const MAZE = [
-  "###############",
-  "#......#......#",
-  "#.####...####.#",
-  "#.####...####.#",
-  "#.....###.....#",
-  "#.###.###.###.#",
-  "#.....###.....#",
-  "#.####...####.#",
-  "#.####...####.#",
-  "#......#......#",
-  "###############",
-];
 const W = 15;
 const H = 11;
 const CELL = 36;
-const PLAYER_START = { x: 1, y: 9 };
-const GHOST_START = { x: 7, y: 3 };
-const PLAYER_SPEED = 5.2; 
-const GHOST_SPEED = 4.0;
+const PLAYER_SPEED = 5.2;
+
+type LevelId = "easy" | "medium" | "hard";
+
+interface Level {
+  id: LevelId;
+  maze: string[];
+  ghostSpeed: number;
+  /** odds the bug picks the tile that closes distance instead of wandering */
+  chaseBias: number;
+  playerStart: { x: number; y: number };
+  ghostStart: { x: number; y: number };
+  pellets: number;
+}
+
+const LEVEL_MAZES: Record<LevelId, string[]> = {
+  easy: [
+    "###############",
+    "#......#......#",
+    "#.####...####.#",
+    "#.####...####.#",
+    "#.....###.....#",
+    "#.###.###.###.#",
+    "#.....###.....#",
+    "#.####...####.#",
+    "#.####...####.#",
+    "#......#......#",
+    "###############",
+  ],
+  medium: [
+    "###############",
+    "#......#......#",
+    "#.#.##.#.##.#.#",
+    "#.#.........#.#",
+    "#.#.#.###.#.#.#",
+    "#...#..#..#...#",
+    "#.#.#.###.#.#.#",
+    "#.#.........#.#",
+    "#.#.##.#.##.#.#",
+    "#......#......#",
+    "###############",
+  ],
+  hard: [
+    "###############",
+    "#.....#.#.....#",
+    "#.###.#.#.###.#",
+    "#...#.....#...#",
+    "##.#.#.#.#.#.##",
+    "#......#......#",
+    "##.#.#.#.#.#.##",
+    "#...#.....#...#",
+    "#.###.#.#.###.#",
+    "#.....#.#.....#",
+    "###############",
+  ],
+};
+
+function countPellets(maze: string[]): number {
+  let n = 0;
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) if (maze[y]?.[x] === ".") n++;
+  return n - 1; // the tile the player starts on is already collected
+}
+
+const LEVELS: Level[] = [
+  {
+    id: "easy",
+    maze: LEVEL_MAZES.easy,
+    ghostSpeed: 3.8,
+    chaseBias: 0.6,
+    playerStart: { x: 1, y: 9 },
+    ghostStart: { x: 7, y: 3 },
+    pellets: countPellets(LEVEL_MAZES.easy),
+  },
+  {
+    id: "medium",
+    maze: LEVEL_MAZES.medium,
+    ghostSpeed: 4.6,
+    chaseBias: 0.74,
+    playerStart: { x: 1, y: 9 },
+    ghostStart: { x: 7, y: 3 },
+    pellets: countPellets(LEVEL_MAZES.medium),
+  },
+  {
+    id: "hard",
+    maze: LEVEL_MAZES.hard,
+    ghostSpeed: 5.3,
+    chaseBias: 0.86,
+    playerStart: { x: 1, y: 9 },
+    ghostStart: { x: 7, y: 3 },
+    pellets: countPellets(LEVEL_MAZES.hard),
+  },
+];
+
+const LAST = LEVELS.length - 1;
 
 type Dir = { x: number; y: number };
 const DIRS4: Dir[] = [
@@ -33,28 +116,47 @@ const DIRS4: Dir[] = [
   { x: -1, y: 0 },
   { x: 1, y: 0 },
 ];
-const KEY_DIRS: Record<string, Dir> = {
-  ArrowUp: { x: 0, y: -1 },
-  w: { x: 0, y: -1 },
-  ArrowDown: { x: 0, y: 1 },
-  s: { x: 0, y: 1 },
-  ArrowLeft: { x: -1, y: 0 },
-  a: { x: -1, y: 0 },
-  ArrowRight: { x: 1, y: 0 },
-  d: { x: 1, y: 0 },
-};
-const KEY_TO_CAP: Record<string, string> = {
-  ArrowUp: "W",
-  w: "W",
-  ArrowLeft: "A",
-  a: "A",
-  ArrowDown: "S",
-  s: "S",
-  ArrowRight: "D",
-  d: "D",
+const UP: Dir = { x: 0, y: -1 };
+const DOWN: Dir = { x: 0, y: 1 };
+const LEFT: Dir = { x: -1, y: 0 };
+const RIGHT: Dir = { x: 1, y: 0 };
+
+/**
+ * Keyed by lowercased `event.code` (physical key) as well as lowercased
+ * `event.key` (character). Matching on `code` keeps WASD working under caps
+ * lock, with shift held, and on layouts where the physical W key does not
+ * produce a "w".
+ */
+const CONTROLS: Record<string, { dir: Dir; cap: string }> = {
+  arrowup: { dir: UP, cap: "W" },
+  keyw: { dir: UP, cap: "W" },
+  w: { dir: UP, cap: "W" },
+  arrowdown: { dir: DOWN, cap: "S" },
+  keys: { dir: DOWN, cap: "S" },
+  s: { dir: DOWN, cap: "S" },
+  arrowleft: { dir: LEFT, cap: "A" },
+  keya: { dir: LEFT, cap: "A" },
+  a: { dir: LEFT, cap: "A" },
+  arrowright: { dir: RIGHT, cap: "D" },
+  keyd: { dir: RIGHT, cap: "D" },
+  d: { dir: RIGHT, cap: "D" },
 };
 
-const open = (x: number, y: number) => MAZE[y]?.[x] === ".";
+function controlFor(e: React.KeyboardEvent) {
+  return (
+    CONTROLS[e.code?.toLowerCase()] ?? CONTROLS[e.key?.toLowerCase()] ?? null
+  );
+}
+
+function isConfirmKey(e: React.KeyboardEvent) {
+  return (
+    e.key === "Enter" ||
+    e.key === " " ||
+    e.code === "Enter" ||
+    e.code === "NumpadEnter" ||
+    e.code === "Space"
+  );
+}
 
 const SPRITE_UNIT = CELL / 10;
 
@@ -135,16 +237,22 @@ interface Ent {
 const px = (e: Ent) => (e.cx + (e.tx - e.cx) * e.prog + 0.5) * CELL;
 const py = (e: Ent) => (e.cy + (e.ty - e.cy) * e.prog + 0.5) * CELL;
 
-function totalPellets(): number {
-  let n = 0;
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (open(x, y)) n++;
-  return n - 1; 
-}
-const TOTAL = totalPellets();
+const spawn = (at: { x: number; y: number }, dir: Dir | null): Ent => ({
+  cx: at.x,
+  cy: at.y,
+  tx: at.x,
+  ty: at.y,
+  prog: 0,
+  dir,
+});
 
 type Phase = "idle" | "playing" | "won" | "lost";
 
-const VICTORY_MS = 2200;
+/** How long each canvas scene plays before the result screen takes over. */
+const WIN_MS = 2200;
+const LOSE_MS = 1900;
+
+type Cutscene = "win" | "lose";
 
 const FALLBACK = {
   black: "#0c0a09",
@@ -203,35 +311,40 @@ function Keycap({
   );
 }
 
+const ACTION_CLASS = cn(
+  buttonVariants({ variant: "outline", size: "sm" }),
+  "h-9 gap-1.5 rounded-full border-cream/25 bg-transparent px-5 font-mono text-xs text-cream",
+  "transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+  "hover:border-cream hover:bg-cream hover:text-black",
+);
+
+const ACTION_PRIMARY_CLASS = cn(
+  buttonVariants({ size: "sm" }),
+  "h-9 gap-1.5 rounded-full bg-primary px-5 font-mono text-xs text-cream",
+  "transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+  "hover:bg-primary/85",
+);
+
 export function PacGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
+  const [level, setLevel] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
   const [score, setScore] = useState(0);
   const [pressedCap, setPressedCap] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
-  const [celebrating, setCelebrating] = useState(false);
+  const [cutscene, setCutscene] = useState<Cutscene | null>(null);
   const [printed, setPrinted] = useState(0);
 
-  const player = useRef<Ent>({
-    cx: PLAYER_START.x,
-    cy: PLAYER_START.y,
-    tx: PLAYER_START.x,
-    ty: PLAYER_START.y,
-    prog: 0,
-    dir: null,
-  });
-  const ghost = useRef<Ent>({
-    cx: GHOST_START.x,
-    cy: GHOST_START.y,
-    tx: GHOST_START.x,
-    ty: GHOST_START.y,
-    prog: 0,
-    dir: { x: 1, y: 0 },
-  });
+  const lv = LEVELS[level];
+  const maze = lv.maze;
+  const total = lv.pellets;
+  const isOpen = (x: number, y: number) => maze[y]?.[x] === ".";
+
+  const player = useRef<Ent>(spawn(LEVELS[0].playerStart, null));
+  const ghost = useRef<Ent>(spawn(LEVELS[0].ghostStart, { x: 1, y: 0 }));
   const queued = useRef<Dir | null>(null);
   const eaten = useRef<Set<string>>(new Set());
-  const startedAt = useRef<number>(0);
   const palette = useRef({
     bg: FALLBACK.black,
     wall: withAlpha(FALLBACK.cream, 0.06),
@@ -263,75 +376,6 @@ export function PacGame() {
     };
   }, []);
 
-  useEffect(() => {
-    if (phase !== "playing" && phase !== "won") draw(performance.now());
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "won") return;
-
-    let rafId = 0;
-    const startedAtMs = performance.now();
-
-    const loop = (now: number) => {
-      rafId = requestAnimationFrame(loop);
-      drawVictory(now - startedAtMs);
-    };
-
-    rafId = requestAnimationFrame(loop);
-    const done = setTimeout(() => setCelebrating(false), VICTORY_MS + 250);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      clearTimeout(done);
-    };
-  }, [phase]);
-
-  function drawVictory(elapsedMs: number) {
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx) return;
-    const c = palette.current;
-    const w = W * CELL;
-    const h = H * CELL;
-
-    ctx.fillStyle = c.bg;
-    ctx.fillRect(0, 0, w, h);
-
-    const unit = SPRITE_UNIT * 2.2;
-    const span = 8 * unit;
-    const midY = h / 2;
-    const progress = Math.min(elapsedMs / VICTORY_MS, 1);
-    const cx = -span + (w + span * 2) * progress;
-
-    ctx.fillStyle = c.pellet;
-    for (let x = CELL; x < w; x += CELL) {
-      if (x < cx) continue;
-      ctx.beginPath();
-      ctx.arc(x, midY, 2.6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    const chomping = Math.sin(elapsedMs / 70) > 0;
-    drawSprite(
-      ctx,
-      chomping ? PLAYER_OPEN : PLAYER_SHUT,
-      cx,
-      midY,
-      c.player,
-      c.bg,
-      0,
-      unit,
-    );
-  }
-
-  useEffect(() => {
-    if (phase !== "won" && phase !== "lost") return;
-    const timers = [1, 2, 3].map((n) =>
-      setTimeout(() => setPrinted(n), n * 260),
-    );
-    return () => timers.forEach(clearTimeout);
-  }, [phase]);
-
   function draw(now: number) {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
@@ -342,7 +386,7 @@ export function PacGame() {
 
     for (let y = 0; y < H; y++) {
       for (let x = 0; x < W; x++) {
-        if (!open(x, y)) {
+        if (!isOpen(x, y)) {
           ctx.fillStyle = c.wall;
           ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
         } else if (!eaten.current.has(`${x},${y}`)) {
@@ -371,11 +415,162 @@ export function PacGame() {
     drawSprite(ctx, GHOST, px(g), py(g), c.ghost, c.bg);
   }
 
+  function drawVictory(elapsedMs: number) {
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    const c = palette.current;
+    const w = W * CELL;
+    const h = H * CELL;
+
+    ctx.fillStyle = c.bg;
+    ctx.fillRect(0, 0, w, h);
+
+    const unit = SPRITE_UNIT * 2.2;
+    const span = 8 * unit;
+    const midY = h / 2;
+    const progress = Math.min(elapsedMs / WIN_MS, 1);
+    const cx = -span + (w + span * 2) * progress;
+
+    ctx.fillStyle = c.pellet;
+    for (let x = CELL; x < w; x += CELL) {
+      if (x < cx) continue;
+      ctx.beginPath();
+      ctx.arc(x, midY, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const chomping = Math.sin(elapsedMs / 70) > 0;
+    drawSprite(
+      ctx,
+      chomping ? PLAYER_OPEN : PLAYER_SHUT,
+      cx,
+      midY,
+      c.player,
+      c.bg,
+      0,
+      unit,
+    );
+  }
+
+  /**
+   * Loss counterpart to the victory sweep, in three beats on one clock:
+   *
+   *   0    -> CAUGHT   you run right to left, the bug starts further back and
+   *                    closes the gap at a constant rate, landing just behind
+   *                    you exactly on CAUGHT
+   *   CAUGHT -> DIED   you spin out and shrink away, the bug holds position
+   *   DIED -> 1        the bug sits there bobbing, so the scene never cuts to
+   *                    an empty canvas before the result screen
+   *
+   * Every position is a linear function of t, so the chase stays in sync at
+   * any frame rate, and both sprites are on screen for nearly the whole run.
+   */
+  function drawDefeat(elapsedMs: number) {
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    const c = palette.current;
+    const w = W * CELL;
+    const h = H * CELL;
+
+    ctx.fillStyle = c.bg;
+    ctx.fillRect(0, 0, w, h);
+
+    const unit = SPRITE_UNIT * 2.2;
+    const midY = h / 2;
+    const t = Math.min(elapsedMs / LOSE_MS, 1);
+
+    const CAUGHT = 0.55;
+    const DIED = 0.78;
+
+    // both start just off the right edge so the chase is on screen immediately
+    const meetX = w * 0.3;
+    const gap = unit * 0.95; // where the bug settles, right on your tail
+    const chase = Math.min(t / CAUGHT, 1);
+    const playerX = w * 1.06 + (meetX - w * 1.06) * chase;
+    const bugX = w * 1.42 + (meetX + gap - w * 1.42) * chase;
+
+    if (t < CAUGHT) {
+      const chomping = Math.sin(elapsedMs / 70) > 0;
+      drawSprite(
+        ctx,
+        chomping ? PLAYER_OPEN : PLAYER_SHUT,
+        playerX,
+        midY,
+        c.player,
+        c.bg,
+        Math.PI, // facing left, running for the edge
+        unit,
+      );
+    } else if (t < DIED) {
+      // arcade style spin out: three turns while shrinking to nothing
+      const k = (t - CAUGHT) / (DIED - CAUGHT);
+      ctx.globalAlpha = 1 - k * 0.9;
+      drawSprite(
+        ctx,
+        PLAYER_SHUT,
+        meetX,
+        midY,
+        c.player,
+        c.bg,
+        Math.PI + k * Math.PI * 3,
+        unit * (1 - k),
+      );
+      ctx.globalAlpha = 1;
+    }
+
+    // after the catch the bug idles in place rather than leaving an empty frame
+    const bob = t > CAUGHT ? Math.sin((t - CAUGHT) * 26) * unit * 0.14 : 0;
+    drawSprite(ctx, GHOST, bugX, midY + bob, c.ghost, c.bg, 0, unit);
+  }
+
+  useEffect(() => {
+    if (phase !== "playing" && !cutscene) draw(performance.now());
+  }, [phase, level, cutscene]);
+
+  useEffect(() => {
+    if (!cutscene) return;
+
+    let rafId = 0;
+    const startedAtMs = performance.now();
+    const win = cutscene === "win";
+    const render = win ? drawVictory : drawDefeat;
+
+    const loop = (now: number) => {
+      rafId = requestAnimationFrame(loop);
+      render(now - startedAtMs);
+    };
+
+    rafId = requestAnimationFrame(loop);
+    const done = setTimeout(
+      () => setCutscene(null),
+      (win ? WIN_MS : LOSE_MS) + 250,
+    );
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(done);
+    };
+  }, [cutscene]);
+
+  useEffect(() => {
+    if (phase !== "won" && phase !== "lost") return;
+    const timers = [1, 2, 3].map((n) =>
+      setTimeout(() => setPrinted(n), n * 260),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [phase]);
+
   useEffect(() => {
     if (phase !== "playing") return;
 
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
     let rafId = 0;
-    let last = performance.now();
+    let last = 0;
+    let startAt = 0;
+    let frameNow = 0;
     let stopped = false;
 
     const advance = (e: Ent, dist: number, onArrive: () => void) => {
@@ -394,9 +589,9 @@ export function PacGame() {
     };
 
     const finish = (result: Phase) => {
-      setElapsed((performance.now() - startedAt.current) / 1000);
+      setElapsed((frameNow - startAt) / 1000);
       setPrinted(0);
-      if (result === "won") setCelebrating(true);
+      if (!reduced) setCutscene(result === "won" ? "win" : "lose");
       setPhase(result);
     };
 
@@ -405,16 +600,16 @@ export function PacGame() {
       const k = `${p.cx},${p.cy}`;
       if (!eaten.current.has(k)) {
         eaten.current.add(k);
-        setScore(eaten.current.size - 1); 
-        if (eaten.current.size - 1 >= TOTAL) {
+        setScore(eaten.current.size - 1);
+        if (eaten.current.size - 1 >= total) {
           finish("won");
           stopped = true;
           return;
         }
       }
       const q = queued.current;
-      if (q && open(p.cx + q.x, p.cy + q.y)) p.dir = q;
-      if (p.dir && open(p.cx + p.dir.x, p.cy + p.dir.y)) {
+      if (q && isOpen(p.cx + q.x, p.cy + q.y)) p.dir = q;
+      if (p.dir && isOpen(p.cx + p.dir.x, p.cy + p.dir.y)) {
         p.tx = p.cx + p.dir.x;
         p.ty = p.cy + p.dir.y;
       } else {
@@ -427,7 +622,7 @@ export function PacGame() {
     const ghostArrive = () => {
       const g = ghost.current;
       const p = player.current;
-      const options = DIRS4.filter((d) => open(g.cx + d.x, g.cy + d.y)).filter(
+      const options = DIRS4.filter((d) => isOpen(g.cx + d.x, g.cy + d.y)).filter(
         (d) => !(g.dir && d.x === -g.dir.x && d.y === -g.dir.y),
       );
       const pool = options.length
@@ -437,7 +632,7 @@ export function PacGame() {
           : [];
       if (!pool.length) return;
       let pick: Dir;
-      if (Math.random() < 0.68) {
+      if (Math.random() < lv.chaseBias) {
         pick = pool.reduce((best, d) => {
           const dist = (dd: Dir) =>
             Math.abs(g.cx + dd.x - p.cx) + Math.abs(g.cy + dd.y - p.cy);
@@ -454,13 +649,20 @@ export function PacGame() {
     const loop = (now: number) => {
       if (stopped) return;
       rafId = requestAnimationFrame(loop);
+      // the rAF timestamp is the clock for the whole run, so the first frame
+      // seeds it rather than measuring against an earlier render
+      if (!startAt) {
+        startAt = now;
+        last = now;
+      }
+      frameNow = now;
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
 
       const p = player.current;
       if (!p.dir && queued.current) {
         const q = queued.current;
-        if (open(p.cx + q.x, p.cy + q.y)) {
+        if (isOpen(p.cx + q.x, p.cy + q.y)) {
           p.dir = q;
           p.tx = p.cx + q.x;
           p.ty = p.cy + q.y;
@@ -483,7 +685,7 @@ export function PacGame() {
 
       advance(p, dt * PLAYER_SPEED, playerArrive);
       if (stopped) return;
-      advance(ghost.current, dt * GHOST_SPEED, ghostArrive);
+      advance(ghost.current, dt * lv.ghostSpeed, ghostArrive);
 
       const g = ghost.current;
       if (Math.hypot(px(p) - px(g), py(p) - py(g)) < CELL * 0.62) {
@@ -500,196 +702,299 @@ export function PacGame() {
       stopped = true;
       cancelAnimationFrame(rafId);
     };
-  }, [phase]);
+  }, [phase, level]);
 
-  const start = () => {
-    player.current = {
-      cx: PLAYER_START.x,
-      cy: PLAYER_START.y,
-      tx: PLAYER_START.x,
-      ty: PLAYER_START.y,
-      prog: 0,
-      dir: null,
-    };
-    ghost.current = {
-      cx: GHOST_START.x,
-      cy: GHOST_START.y,
-      tx: GHOST_START.x,
-      ty: GHOST_START.y,
-      prog: 0,
-      dir: { x: 1, y: 0 },
-    };
+  const startLevel = (index: number) => {
+    const next = LEVELS[index];
+    player.current = spawn(next.playerStart, null);
+    ghost.current = spawn(next.ghostStart, { x: 1, y: 0 });
     queued.current = null;
-    eaten.current = new Set([`${PLAYER_START.x},${PLAYER_START.y}`]);
-    startedAt.current = performance.now();
+    eaten.current = new Set([
+      `${next.playerStart.x},${next.playerStart.y}`,
+    ]);
+    setLevel(index);
     setScore(0);
     setElapsed(0);
     setPrinted(0);
-    setCelebrating(false);
+    setCutscene(null);
     setPhase("playing");
     frameRef.current?.focus({ preventScroll: true });
   };
 
+  const won = phase === "won";
+  const lost = phase === "lost";
+  const over = won || lost;
+  const allCleared = won && level === LAST;
+
+  const primaryAction = () => {
+    if (cutscene) return;
+    if (allCleared) return startLevel(0);
+    if (won) return startLevel(level + 1);
+    return startLevel(level);
+  };
+
   const onKeyDown = (e: React.KeyboardEvent) => {
-    const d = KEY_DIRS[e.key];
-    if (d) {
+    const control = controlFor(e);
+    if (control) {
       e.preventDefault();
-      queue(d);
-      setPressedCap(KEY_TO_CAP[e.key] ?? null);
+      queue(control.dir);
+      setPressedCap(control.cap);
+      return;
     }
-    if ((e.key === "Enter" || e.key === " ") && phase !== "playing") {
+    // Buttons inside this panel (level pills, overlay actions) handle their own
+    // activation, so let their Enter/Space through instead of double-firing.
+    const fromButton = (e.target as HTMLElement | null)?.closest("button");
+    if (isConfirmKey(e) && !fromButton && phase !== "playing") {
       e.preventDefault();
-      start();
+      primaryAction();
     }
   };
 
-  const won = phase === "won";
-  const over = won || phase === "lost";
-
-  const resultLines = won
+  // kept short so a line never wraps and pushes the log box taller
+  const resultLines = allCleared
     ? [
-        `You cleared the board — ${TOTAL}/${TOTAL} dots`,
+        `all 3 levels cleared`,
         `time ${elapsed.toFixed(2)}s`,
         "exit code 0",
       ]
-    : [
-        `You got killed by a bug — ${score}/${TOTAL} dots`,
-        `time ${elapsed.toFixed(2)}s`,
-        "exit code 1",
-      ];
+    : won
+      ? [
+          `${lv.id} cleared, ${total}/${total} dots`,
+          `time ${elapsed.toFixed(2)}s`,
+          `next up: ${LEVELS[level + 1].id}`,
+        ]
+      : [
+          `bug got you, ${score}/${total} dots`,
+          `time ${elapsed.toFixed(2)}s`,
+          "exit code 1",
+        ];
+
+  const headline = allCleared
+    ? "You completed all the levels"
+    : won
+      ? `${lv.id} cleared`
+      : lost
+        ? "Bug got you"
+        : null;
 
   return (
     <div className="w-full max-w-md overflow-hidden rounded-xl border border-cream/15 bg-cream/[0.02] font-mono text-xs">
-        <div className="flex items-center gap-2 border-b border-cream/10 px-4 py-2.5">
-          <span className="flex gap-1.5">
-            <span className="size-2.5 rounded-full bg-primary/70" />
-            <span className="size-2.5 rounded-full bg-cream/20" />
-            <span className="size-2.5 rounded-full bg-cream/20" />
-          </span>
-          <span className="ml-1 text-cream/40">dot-run — zsh</span>
+      <div className="flex items-center gap-2 border-b border-cream/10 px-4 py-2.5">
+        <span className="flex gap-1.5">
+          <span className="size-2.5 rounded-full bg-primary/70" />
+          <span className="size-2.5 rounded-full bg-cream/20" />
+          <span className="size-2.5 rounded-full bg-cream/20" />
+        </span>
+        <span className="ml-1 text-cream/40">dot-run - zsh</span>
+      </div>
+
+      <div
+        className="space-y-3 p-4"
+        onKeyDown={onKeyDown}
+        onKeyUp={() => setPressedCap(null)}
+      >
+        <p className="text-cream/40">
+          <span className="text-primary">➜</span> ~/portfolio{" "}
+          <span className="text-cream/70">./dot-run --level {lv.id}</span>
+        </p>
+
+        <div
+          role="group"
+          aria-label="Choose a level"
+          className="flex items-center gap-1"
+        >
+          {LEVELS.map((l, i) => (
+            <button
+              key={l.id}
+              type="button"
+              onClick={() => startLevel(i)}
+              aria-current={i === level ? "true" : undefined}
+              className={cn(
+                "rounded-full px-2.5 py-1 font-mono text-[11px]",
+                "transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                "outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
+                i === level
+                  ? "bg-primary/15 text-primary"
+                  : "text-cream/55 hover:bg-cream/10 hover:text-cream",
+              )}
+            >
+              {l.id}
+            </button>
+          ))}
         </div>
 
         <div
-          className="space-y-3 p-4"
-          onKeyDown={onKeyDown}
-          onKeyUp={() => setPressedCap(null)}
+          ref={frameRef}
+          tabIndex={0}
+          aria-label="Maze mini game. Move the cursor with arrow keys or WASD, collect every token, and avoid the bug."
+          className={cn(
+            // padded shell so the border never sits on the canvas clip edge,
+            // which is what made the corners read thin
+            "rounded-[12px] border bg-black p-1.5 outline-none transition-colors duration-500",
+            won
+              ? "border-primary"
+              : lost
+                ? "border-cream/40"
+                : "border-cream/20 focus-visible:border-primary",
+          )}
         >
-          <p className="text-cream/40">
-            <span className="text-primary">➜</span> ~/portfolio{" "}
-            <span className="text-cream/70">./dot-run --maze {W}x{H}</span>
-          </p>
+          <div className="relative overflow-hidden rounded-[6px]">
+          <canvas
+            ref={canvasRef}
+            width={W * CELL}
+            height={H * CELL}
+            className="block h-auto w-full"
+          />
 
-          <div
-            ref={frameRef}
-            tabIndex={0}
-            aria-label="Maze mini game. Move the cursor with arrow keys or WASD, collect every token, and avoid the bug."
-            className={`relative overflow-hidden rounded-lg border outline-none transition-colors duration-500 ${
-              won ? "border-primary" : "border-cream/10 focus-visible:border-primary"
-            }`}
-          >
-            <canvas
-              ref={canvasRef}
-              width={W * CELL}
-              height={H * CELL}
-              className="block h-auto w-full"
-            />
-
-            {phase !== "playing" && !celebrating && (
-              <div className="absolute inset-0 grid place-items-center gap-3 bg-black/70 backdrop-blur-[2px]">
-                <div className="flex flex-col items-center gap-3">
-                  {won && (
-                    <p className="font-mono text-sm tracking-[0.2em] text-primary uppercase">
-                      You won{" <3"}
-                    </p>
-                  )}
-                  {phase === "lost" && (
-                    <p className="font-mono text-sm tracking-[0.2em] text-cream/70 uppercase">
-                      Bug got you{" </3"}
-                    </p>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={start}
+          {phase !== "playing" && !cutscene && (
+            <div className="absolute inset-0 grid place-items-center bg-black/70 px-4 backdrop-blur-[2px]">
+              <div className="flex flex-col items-center gap-3 text-center">
+                {headline && (
+                  <p
                     className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "h-9 gap-1.5 rounded-full border-cream/25 bg-transparent px-5 font-mono text-xs",
-                      "transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                      "hover:border-cream hover:bg-cream hover:text-black",
+                      "font-mono text-sm tracking-[0.2em] uppercase",
+                      won ? "text-primary" : "text-cream/70",
                     )}
                   >
-                    <span className="text-primary">➜</span>
-                    {phase === "idle" ? "run" : "run again"}
-                  </button>
+                    {headline}
+                  </p>
+                )}
+
+                {allCleared && (
+                  <p className="max-w-[26ch] text-[11px] leading-relaxed text-cream/45">
+                    Easy, medium and hard are all done. Start over whenever you
+                    want another run.
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {phase === "idle" && (
+                    <button
+                      type="button"
+                      onClick={() => startLevel(0)}
+                      className={ACTION_PRIMARY_CLASS}
+                    >
+                      <span>➜</span>
+                      run
+                    </button>
+                  )}
+
+                  {lost && (
+                    <button
+                      type="button"
+                      onClick={() => startLevel(level)}
+                      className={ACTION_PRIMARY_CLASS}
+                    >
+                      <ArrowCounterClockwiseIcon weight="bold" />
+                      try again
+                    </button>
+                  )}
+
+                  {won && !allCleared && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => startLevel(level)}
+                        className={ACTION_CLASS}
+                      >
+                        <ArrowCounterClockwiseIcon weight="bold" />
+                        try again
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => startLevel(level + 1)}
+                        className={ACTION_PRIMARY_CLASS}
+                      >
+                        next level
+                        <ArrowRightIcon weight="bold" />
+                      </button>
+                    </>
+                  )}
+
+                  {allCleared && (
+                    <button
+                      type="button"
+                      onClick={() => startLevel(0)}
+                      className={ACTION_PRIMARY_CLASS}
+                    >
+                      <ArrowClockwiseIcon weight="bold" />
+                      start over
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-
-          <div
-            className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
-            aria-live="polite"
-          >
-            <div className="space-y-1">
-              <p className="text-cream/40">
-                dots{" "}
-                <span className="text-cream/70">
-                  {score}/{TOTAL}
-                </span>
-                <span className="ml-3 text-cream/25">
-                  {phase === "playing" ? "running…" : over ? "done" : "idle"}
-                </span>
-              </p>
-
-              <div className="min-h-14 space-y-0.5 pt-1">
-                {over &&
-                  resultLines.slice(0, printed).map((line, i) => (
-                    <p
-                      key={line}
-                      className={
-                        i === 0
-                          ? won
-                            ? "text-primary"
-                            : "text-cream/60"
-                          : "text-cream/35"
-                      }
-                    >
-                      {line}
-                    </p>
-                  ))}
-              </div>
             </div>
-
-            <div className="mx-auto grid w-[156px] shrink-0 grid-cols-3 gap-1.5 select-none sm:mx-0 sm:w-[132px]">
-              <span />
-              <Keycap
-                label="W"
-                aria="Move up"
-                pressed={pressedCap === "W"}
-                onPress={() => queue({ x: 0, y: -1 })}
-              />
-              <span />
-              <Keycap
-                label="A"
-                aria="Move left"
-                pressed={pressedCap === "A"}
-                onPress={() => queue({ x: -1, y: 0 })}
-              />
-              <Keycap
-                label="S"
-                aria="Move down"
-                pressed={pressedCap === "S"}
-                onPress={() => queue({ x: 0, y: 1 })}
-              />
-              <Keycap
-                label="D"
-                aria="Move right"
-                pressed={pressedCap === "D"}
-                onPress={() => queue({ x: 1, y: 0 })}
-              />
-            </div>
+          )}
           </div>
         </div>
+
+        <div
+          className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+          aria-live="polite"
+        >
+          <div className="space-y-1">
+            <p className="text-cream/40">
+              dots{" "}
+              <span className="text-cream/70">
+                {score}/{total}
+              </span>
+              <span className="ml-3 text-cream/25">
+                {phase === "playing" ? "running…" : over ? "done" : "idle"}
+              </span>
+            </p>
+
+            {/* fixed height, bottom anchored: new lines push older ones up and
+                out of view instead of resizing the panel */}
+            <div className="mt-1 flex h-14 flex-col justify-end gap-0.5 overflow-hidden">
+              {over &&
+                resultLines.slice(0, printed).map((line, i) => (
+                  <p
+                    key={line}
+                    className={cn(
+                      "shrink-0 truncate",
+                      i === 0
+                        ? won
+                          ? "text-primary"
+                          : "text-cream/60"
+                        : "text-cream/35",
+                    )}
+                  >
+                    {line}
+                  </p>
+                ))}
+            </div>
+          </div>
+
+          <div className="mx-auto grid w-[156px] shrink-0 grid-cols-3 gap-1.5 select-none sm:mx-0 sm:w-[132px]">
+            <span />
+            <Keycap
+              label="W"
+              aria="Move up"
+              pressed={pressedCap === "W"}
+              onPress={() => queue({ x: 0, y: -1 })}
+            />
+            <span />
+            <Keycap
+              label="A"
+              aria="Move left"
+              pressed={pressedCap === "A"}
+              onPress={() => queue({ x: -1, y: 0 })}
+            />
+            <Keycap
+              label="S"
+              aria="Move down"
+              pressed={pressedCap === "S"}
+              onPress={() => queue({ x: 0, y: 1 })}
+            />
+            <Keycap
+              label="D"
+              aria="Move right"
+              pressed={pressedCap === "D"}
+              onPress={() => queue({ x: 1, y: 0 })}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

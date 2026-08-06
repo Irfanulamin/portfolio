@@ -37,8 +37,9 @@ export default function Play() {
                   actually takes to make, so I sat down and made one.
                 </p>
                 <p className="text-base text-cream/55">
-                  Clear every token before the bug catches you. Arrow keys or
-                  WASD on a keyboard, the pad below on a phone.
+                  Clear every token before the bug catches you. Three levels,
+                  each with a new map and a faster bug. Arrow keys or WASD on a
+                  keyboard, the pad below on a phone.
                 </p>
               </div>
             </header>
