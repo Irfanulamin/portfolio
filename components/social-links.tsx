@@ -40,7 +40,7 @@ const socials: Social[] = [
   {
     label: "Instagram",
     icon: InstagramLogo,
-    href: "https://www.instagram.com/irfanulamin.dev/",
+    href: "https://www.instagram.com/notirf4n/",
   },
 ];
 
