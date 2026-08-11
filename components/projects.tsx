@@ -7,14 +7,14 @@ import { projects } from "@/lib/projects";
 export function Projects() {
   return (
     <Section id="projects" label="Projects" description="What I've built.">
-      <ol className="dim-siblings space-y-2">
-        {projects.map((project) => (
-          <li key={project.name}>
+      <ol className="stagger dim-siblings space-y-2">
+        {projects.map((project, i) => (
+          <li key={project.name} style={{ "--index": i } as React.CSSProperties}>
             <a
               href={project.href}
               target="_blank"
               rel="noreferrer"
-              className="group -mx-3 flex items-start gap-4 rounded-xl px-3 py-3 transition-colors duration-300 hover:bg-cream/4"
+              className="group -mx-3 flex items-start gap-4 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-cream/4"
             >
               <Image
                 src={project.logo}
@@ -30,7 +30,7 @@ export function Projects() {
                   {project.name}
                   <ArrowUpRightIcon
                     weight="bold"
-                    className="size-3.5 text-primary opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100"
+                    className="size-3.5 text-primary opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100"
                   />
                 </p>
                 <p className="text-sm leading-relaxed text-cream/55">

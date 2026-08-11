@@ -7,7 +7,7 @@ export function Banner() {
       <Avatar />
 
       <div className="space-y-1.5">
-        <h1 className="text-xl font-medium tracking-tight text-cream">
+        <h1 className="text-2xl leading-[1.15] font-medium tracking-[-0.02em] text-cream">
           Irfanul Amin Maruf
         </h1>
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary">
@@ -15,7 +15,7 @@ export function Banner() {
         </p>
       </div>
 
-      <div className="space-y-4 text-[17px] leading-relaxed text-cream/85">
+      <div className="space-y-4 text-[17px] leading-[1.65] text-cream/85">
         <p>
           I&apos;m Irfan, a junior software engineer at{" "}
           <TextLink href="https://createdevs.com/">CreateDevs</TextLink>.

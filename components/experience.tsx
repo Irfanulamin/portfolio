@@ -11,10 +11,10 @@ import {
 export function Experience() {
   return (
     <Section id="work" label="Experience" description="Companies I've worked with.">
-      <ol className="dim-siblings">
+      <ol className="stagger dim-siblings">
         {roles.map((role, i) => (
-          <li key={role.company}>
-            <div className="-mx-3 flex items-start gap-4 rounded-xl px-3 py-3 transition-colors duration-300 hover:bg-cream/4">
+          <li key={role.company} style={{ "--index": i } as React.CSSProperties}>
+            <div className="-mx-3 flex items-start gap-4 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-cream/4">
               <Image
                 src={role.logo}
                 alt=""

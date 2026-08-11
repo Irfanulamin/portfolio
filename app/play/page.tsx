@@ -22,15 +22,15 @@ export default function Play() {
           <Reveal>
             <header className="space-y-6">
               <div className="space-y-1.5">
-                <h1 className="text-xl font-medium tracking-tight text-cream">
+                <h1 className="text-2xl leading-[1.15] font-medium tracking-[-0.02em] text-cream">
                   dot-run
                 </h1>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary">
+                <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-primary">
                   Sidequest
                 </p>
               </div>
 
-              <div className="space-y-4 text-[17px] leading-relaxed text-cream/85">
+              <div className="space-y-4 text-[17px] leading-[1.65] text-cream/85">
                 <p>
                   I built this one on my own over three days. There was no
                   reason beyond wanting to. I got curious about what a mini game
@@ -54,11 +54,11 @@ export default function Play() {
           <Reveal delay={0.12}>
             <Link
               href="/"
-              className="group mt-12 inline-flex items-center gap-2 font-mono text-sm text-cream/50 transition-colors duration-300 hover:text-cream"
+              className="group mt-12 inline-flex items-center gap-2 font-mono text-sm text-cream/50 transition-colors duration-200 hover:text-cream"
             >
               <ArrowLeftIcon
                 weight="bold"
-                className="size-3.5 text-primary/60 transition-colors duration-300 group-hover:text-primary"
+                className="size-3.5 text-primary/60 transition-[transform,color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-0.5 group-hover:text-primary"
               />
               back to the rest of it
             </Link>

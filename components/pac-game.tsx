@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
@@ -314,14 +315,14 @@ function Keycap({
 const ACTION_CLASS = cn(
   buttonVariants({ variant: "outline", size: "sm" }),
   "h-9 gap-1.5 rounded-full border-cream/25 bg-transparent px-5 font-mono text-xs text-cream",
-  "transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+  "duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]",
   "hover:border-cream hover:bg-cream hover:text-black",
 );
 
 const ACTION_PRIMARY_CLASS = cn(
   buttonVariants({ size: "sm" }),
   "h-9 gap-1.5 rounded-full bg-primary px-5 font-mono text-xs text-cream",
-  "transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+  "duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]",
   "hover:bg-primary/85",
 );
 
@@ -335,6 +336,22 @@ export function PacGame() {
   const [elapsed, setElapsed] = useState(0);
   const [cutscene, setCutscene] = useState<Cutscene | null>(null);
   const [printed, setPrinted] = useState(0);
+  const reduce = useReducedMotion();
+
+  /** Overlay panel arrives as a material — scale and blur resolve together. */
+  const materialize = reduce
+    ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.2 },
+      }
+    : {
+        initial: { opacity: 0, y: 10, scale: 0.96, filter: "blur(6px)" },
+        animate: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" },
+        exit: { opacity: 0, y: 10, scale: 0.96, filter: "blur(6px)" },
+        transition: { type: "spring" as const, bounce: 0.2, duration: 0.5 },
+      };
 
   const lv = LEVELS[level];
   const maze = lv.maze;
@@ -811,7 +828,7 @@ export function PacGame() {
               aria-current={i === level ? "true" : undefined}
               className={cn(
                 "rounded-full px-2.5 py-1 font-mono text-[11px]",
-                "transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                "transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.96]",
                 "outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
                 i === level
                   ? "bg-primary/15 text-primary"
@@ -846,9 +863,19 @@ export function PacGame() {
             className="block h-auto w-full"
           />
 
+          <AnimatePresence>
           {phase !== "playing" && !cutscene && (
-            <div className="absolute inset-0 grid place-items-center bg-black/70 px-4 backdrop-blur-[2px]">
-              <div className="flex flex-col items-center gap-3 text-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="glass absolute inset-0 grid place-items-center bg-black/70 px-4 backdrop-blur-[3px]"
+            >
+              <motion.div
+                {...materialize}
+                className="flex flex-col items-center gap-3 text-center"
+              >
                 {headline && (
                   <p
                     className={cn(
@@ -922,9 +949,10 @@ export function PacGame() {
                     </button>
                   )}
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
+          </AnimatePresence>
           </div>
         </div>
 
@@ -948,8 +976,11 @@ export function PacGame() {
             <div className="mt-1 flex h-14 flex-col justify-end gap-0.5 overflow-hidden">
               {over &&
                 resultLines.slice(0, printed).map((line, i) => (
-                  <p
+                  <motion.p
                     key={line}
+                    initial={reduce ? false : { opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                     className={cn(
                       "shrink-0 truncate",
                       i === 0
@@ -960,7 +991,7 @@ export function PacGame() {
                     )}
                   >
                     {line}
-                  </p>
+                  </motion.p>
                 ))}
             </div>
           </div>
