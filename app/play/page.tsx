@@ -4,7 +4,6 @@ import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { Nav } from "@/components/nav";
 import { PacGame } from "@/components/pac-game";
-import { PianoGame } from "@/components/piano-game";
 import { Reveal } from "@/components/reveal";
 
 export const metadata: Metadata = {
@@ -49,28 +48,6 @@ export default function Play() {
           <Reveal delay={0.08}>
             <div className="mt-12">
               <PacGame />
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.12}>
-            <div className="mt-16 space-y-4">
-              <div className="space-y-1.5">
-                <h2 className="text-xl leading-[1.15] font-medium tracking-[-0.02em] text-cream">
-                  key-hits
-                </h2>
-                <p className="text-base text-cream/55">
-                  The drums are pulled out of the track and handed to you. The
-                  rest of the song plays on its own, and every note you hit
-                  fires the real drum sound from that moment. Miss one and the
-                  beat drops out. S D F, the arrow keys, or click the lanes.
-                </p>
-              </div>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.16}>
-            <div className="mt-6">
-              <PianoGame />
             </div>
           </Reveal>
 
