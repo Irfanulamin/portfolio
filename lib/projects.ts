@@ -20,11 +20,4 @@ export const projects: Project[] = [
     href: "https://www.chefalio.xyz/",
     logo: "/projects/chefalio-logo.png",
   },
-  {
-    name: "MediVerify",
-    description:
-      "A medicine verification system that checks authenticity and returns a trust score using an AI-powered RAG pipeline. Built solo in three days for a hackathon.",
-    href: "https://mediverify-web.vercel.app/",
-    logo: "/projects/mediverify-logo.png",
-  },
 ];

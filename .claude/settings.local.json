@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pnpm dev *)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; foreach \\($x in $c\\) { $p = Get-Process -Id $x.OwningProcess -ErrorAction SilentlyContinue; \"PID $\\($x.OwningProcess\\)  $\\($p.ProcessName\\)  started $\\($p.StartTime\\)\" })",
+      "PowerShell(Stop-Process *)",
+      "Bash(seq 1 60)",
+      "Bash(grep -qE 'Ready in|Error|error|EADDRINUSE' C:/Users/irfan/AppData/Local/Temp/claude/D--projects-portfolio/d2c03cbf-0b3f-4274-bde5-fe346c8e86c0/tasks/betyn63hb.output)",
+      "Bash(break)",
+      "Bash(sleep 1)",
+      "Bash(cat C:/Users/irfan/AppData/Local/Temp/claude/D--projects-portfolio/d2c03cbf-0b3f-4274-bde5-fe346c8e86c0/tasks/betyn63hb.output)",
+      "Bash(node *)",
+      "PowerShell(pnpm check *)"
+    ]
+  }
+}
