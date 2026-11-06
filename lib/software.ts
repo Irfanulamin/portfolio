@@ -42,13 +42,6 @@ export type Tool = {
   color: string;
 };
 
-/** Near-black brand colours (Next.js, Vercel…) vanish on the dark page, so use cream. */
-function visible(hex: string) {
-  const n = parseInt(hex.slice(1), 16);
-  const luma = 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
-  return luma < 30 ? "#f5f1ea" : hex;
-}
-
 const tools: Tool[] = [
   { name: "TypeScript", Icon: SiTypescript, color: SiTypescriptHex },
   { name: "Python", Icon: SiPython, color: SiPythonHex },
@@ -73,7 +66,4 @@ const tools: Tool[] = [
   { name: "Vercel", Icon: SiVercel, color: SiVercelHex },
 ];
 
-export const software = tools.map((tool) => ({
-  ...tool,
-  color: visible(tool.color),
-}));
+export const software = tools;

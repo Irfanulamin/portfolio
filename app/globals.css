@@ -127,15 +127,26 @@
   mix-blend-mode: difference;
 }
 
-/* Brand-colour wash (Stack chips): no blend, the text just swaps to a
-   readable colour as the fill spreads. */
+/* Brand-colour chips (Stack): a deep, muted tint of the brand colour with
+   softly tinted text, so bright brands don't glare on the dark page. On hover
+   white spreads out from the pointer and the text turns black. */
+.wash-brand {
+  background-color: color-mix(
+    in oklab,
+    var(--chip-color) var(--chip-mix, 50%),
+    var(--black)
+  );
+  border-color: var(--chip-border);
+}
+
 .wash-brand > * {
   mix-blend-mode: normal;
+  color: var(--cream);
   transition: color 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .wash-brand:hover > * {
-  color: var(--wash-ink);
+  color: var(--black);
 }
 
 /* Experience timeline: the line draws downward once the section scrolls in. */
