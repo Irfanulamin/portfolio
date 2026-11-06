@@ -34,7 +34,7 @@ function Label({ text }: { text: string }) {
           <span key={i} className="relative inline-block font-bold">
             {part}
             <motion.span
-              className="absolute right-0 bottom-[-3px] left-0 h-[1.5px] origin-left bg-primary"
+              className="absolute right-0 bottom-px left-0 h-[1.5px] origin-left bg-primary"
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={DRAW}
