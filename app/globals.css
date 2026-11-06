@@ -117,7 +117,7 @@
 .wash-chip {
   background-image: radial-gradient(
     circle at var(--wash-x, 0px) var(--wash-y, 0px),
-    var(--cream) 0 var(--wash-radius),
+    var(--wash-color, var(--cream)) 0 var(--wash-radius),
     transparent var(--wash-radius)
   );
   isolation: isolate;
@@ -125,6 +125,95 @@
 
 .wash-chip > * {
   mix-blend-mode: difference;
+}
+
+/* Brand-colour wash (Stack chips): no blend, the text just swaps to a
+   readable colour as the fill spreads. */
+.wash-brand > * {
+  mix-blend-mode: normal;
+  transition: color 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wash-brand:hover > * {
+  color: var(--wash-ink);
+}
+
+/* Experience timeline: the line draws downward once the section scrolls in. */
+[data-revealed] .timeline-line {
+  transform: scaleY(0);
+  transform-origin: top;
+}
+
+[data-revealed="true"] .timeline-line {
+  animation: draw-down 900ms cubic-bezier(0.22, 1, 0.36, 1) 350ms both;
+}
+
+@keyframes draw-down {
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Avatar ring: a light that travels around the photo. */
+@property --orbit-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.orbit {
+  isolation: isolate;
+}
+
+.orbit::before,
+.orbit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--orbit-angle),
+    color-mix(in srgb, var(--primary) 45%, transparent),
+    var(--primary) 70%,
+    var(--cream) 85%,
+    color-mix(in srgb, var(--primary) 45%, transparent)
+  );
+  animation: orbit 6s linear infinite;
+  z-index: -1;
+}
+
+/* Soft glow underneath the ring. */
+.orbit::after {
+  filter: blur(12px);
+  opacity: 0.45;
+}
+
+@keyframes orbit {
+  to {
+    --orbit-angle: 360deg;
+  }
+}
+
+/* Cursor radar: rings that ripple out from the dot. */
+.radar-ping {
+  position: absolute;
+  width: 0.5rem;
+  height: 0.5rem;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  border: 1.5px solid var(--primary);
+  animation: radar-ping 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes radar-ping {
+  from {
+    scale: 1;
+    opacity: 0.4;
+  }
+  to {
+    scale: 2.8;
+    opacity: 0;
+  }
 }
 
 /* Children cascade in one at a time instead of arriving as a block. */
@@ -152,6 +241,14 @@
   transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1) 140ms;
 }
 
+/* Wash chips in a dimming list keep both transitions. */
+.dim-siblings > .wash {
+  transition:
+    --wash-radius 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1) 140ms,
+    scale 100ms;
+}
+
 .dim-siblings:has(> :hover) > :not(:hover) {
   opacity: 0.82;
   transition-delay: 0ms;
@@ -159,13 +256,25 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dim-siblings > *,
+  .dim-siblings > .wash,
   .wash {
     transition: none;
+  }
+  .orbit::before,
+  .orbit::after {
+    animation: none;
+  }
+  .radar-ping {
+    display: none;
   }
   [data-revealed] .stagger > * {
     opacity: 1;
   }
   [data-revealed="true"] .stagger > * {
+    animation: none;
+  }
+  [data-revealed] .timeline-line {
+    transform: none;
     animation: none;
   }
 }

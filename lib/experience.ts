@@ -5,6 +5,8 @@ export type Role = {
   location: string;
   start: string;
   end: string | null;
+  /** Shown in the cursor pill when hovering the role. [Text] is underlined. */
+  cursor: string;
 };
 
 export const roles: Role[] = [
@@ -15,6 +17,7 @@ export const roles: Role[] = [
     location: "New York, USA · Remote",
     start: "2025-06",
     end: null,
+    cursor: "Jun 2025–Present @ [CreateDevs]",
   },
   {
     company: "Perseverance Enterprise",
@@ -23,6 +26,7 @@ export const roles: Role[] = [
     location: "Pune, India · Remote",
     start: "2024-12",
     end: "2025-03",
+    cursor: "Dec 2024–Mar 2025 @ [Perseverance]",
   },
 ];
 
