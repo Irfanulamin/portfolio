@@ -157,7 +157,7 @@ export function CursorArea({ children }: { children: React.ReactNode }) {
               </AnimatePresence>
             </motion.div>
 
-            {/* Tooltip, below-right of the dot. Fades in and out. */}
+            {/* Tooltip, below-right of the dot. */}
             <motion.div
               className="absolute top-0 left-0"
               style={{ x: reduce ? x : tipX, y: reduce ? y : tipY }}
@@ -165,11 +165,19 @@ export function CursorArea({ children }: { children: React.ReactNode }) {
               <AnimatePresence>
                 {label && (
                   <motion.div
-                    className="absolute top-[18px] left-[21px] flex h-8 items-center rounded-full border border-primary/25 bg-[#fbf8f1] px-3.5 text-sm font-medium whitespace-nowrap text-[#1c1410] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]"
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.15, ease: EASE }}
+                    className="absolute top-[18px] left-[21px] flex h-8 items-center rounded-full border border-cream/15 bg-[#1a1613] px-3.5 text-sm font-medium whitespace-nowrap text-cream shadow-[0_8px_24px_-8px_rgba(0,0,0,0.8)]"
+                    // Fades in sliding from right to left; fades out in place.
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                      transition: { duration: 0.25, ease: EASE },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.96,
+                      transition: { duration: 0.15, ease: EASE },
+                    }}
                     style={{ transformOrigin: "0 0" }}
                   >
                     <Label key={label} text={label} />
