@@ -5,6 +5,10 @@ export type Project = {
   logo: string;
   /** Shown in the cursor pill when hovering the project. [Text] is underlined. */
   cursor: string;
+  /** What it's built with. Names with a known icon get one. */
+  stack: string[];
+  /** Source code, if public. */
+  repo?: string;
 };
 
 export const projects: Project[] = [
@@ -15,6 +19,8 @@ export const projects: Project[] = [
     href: "https://www.chefalio.xyz/",
     logo: "/projects/chefalio-logo.png",
     cursor: "Visit [chefalio.xyz]",
+    stack: ["Next.js", "TypeScript", "Tailwind", "shadcn/ui", "NestJS", "MongoDB", "Stripe", "Socket.IO"],
+    repo: "https://github.com/Irfanulamin/chefalio",
   },
   {
     name: "MidnightUX",
@@ -23,5 +29,7 @@ export const projects: Project[] = [
     href: "https://www.midnightux.com/",
     logo: "/projects/midnightux-logo.png",
     cursor: "Visit [midnightux.com]",
+    stack: ["Next.js", "TypeScript", "Tailwind", "GSAP", "Motion", "Lenis"],
+    repo: "https://github.com/Irfanulamin/midnightux",
   },
 ];
