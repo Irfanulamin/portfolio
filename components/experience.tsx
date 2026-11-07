@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { CursorArea } from "@/components/cursor-area";
 import { Section } from "@/components/section";
+import { TimelineLine } from "@/components/timeline-line";
 import {
   formatDuration,
   formatRange,
@@ -25,13 +26,8 @@ export function Experience() {
               style={{ "--index": i } as React.CSSProperties}
             >
               {/* Timeline: a grey line, lighter at the top and darker at the bottom, from this logo down to the next, with a
-                  small gap at each end. Draws downward when the section appears. */}
-              {i < roles.length - 1 && (
-                <span
-                  aria-hidden
-                  className="timeline-line absolute top-[60px] left-5 h-[calc(100%-56px)] w-px bg-linear-to-b from-cream/40 to-cream/10"
-                />
-              )}
+                  small gap at each end. Draws downward once it reaches the middle of the screen. */}
+              {i < roles.length - 1 && <TimelineLine />}
 
               <div
                 data-cursor={role.cursor}
@@ -61,6 +57,21 @@ export function Experience() {
                   </div>
                 </div>
               </div>
+
+              {/* What you did there, lined up past the logo (40px logo + 16px gap). */}
+              {role.points && role.points.length > 0 && (
+                <ul className="mt-1 space-y-1.5 pl-14 text-sm leading-relaxed text-cream/60">
+                  {role.points.map((point) => (
+                    <li key={point} className="relative pl-3.5">
+                      <span
+                        aria-hidden
+                        className="absolute top-[0.6em] left-0 size-1 rounded-full bg-cream/30"
+                      />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ol>

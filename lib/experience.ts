@@ -7,6 +7,8 @@ export type Role = {
   end: string | null;
   /** Shown in the cursor pill when hovering the role. [Text] is underlined. */
   cursor: string;
+  /** What you did there, one short line each. Hidden when empty. */
+  points?: string[];
 };
 
 export const roles: Role[] = [
@@ -18,15 +20,24 @@ export const roles: Role[] = [
     start: "2025-06",
     end: null,
     cursor: "Jun 2025–Present @ [CreateDevs]",
+    points: [
+      "Work with designers and senior engineers to turn client requests into features, from deciding how a workflow should behave to shipping it.",
+      "Build shared components and API integrations so related features behave consistently across client applications.",
+      "Follow up after release, tracing issues across the interface and backend and using client feedback to refine the next update.",
+    ],
   },
   {
     company: "Perseverance Enterprise",
-    title: "Fullstack Developer",
+    title: "Full Stack Developer",
     logo: "/work/perseverance-logo.jpg",
     location: "Pune, India · Remote",
     start: "2024-12",
     end: "2025-03",
     cursor: "Dec 2024–Mar 2025 @ [Perseverance]",
+    points: [
+      "Built React interfaces and the microservice endpoints behind them, handling how application data was stored and retrieved in Supabase.",
+      "Maintained the deployment setup for backend services, packaging them with Docker and routing requests through Nginx.",
+    ],
   },
 ];
 
