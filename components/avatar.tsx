@@ -144,7 +144,8 @@ export function Avatar() {
     const start = performance.now();
 
     const step = (now: number) => {
-      const t = reduce ? 1 : Math.min(1, (now - start) / CLEAR_MS);
+      // The first frame's timestamp can be slightly before `start`, so clamp at 0 too (a negative radius throws).
+      const t = reduce ? 1 : Math.min(1, Math.max(0, (now - start) / CLEAR_MS));
       const eased = 1 - (1 - t) ** 3;
       ctx.globalAlpha = 1;
       ctx.beginPath();
