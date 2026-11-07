@@ -15,8 +15,12 @@ export default function Home() {
         <Nav />
 
         <div className="mt-12">
-          <Banner />
-          <SocialLinks />
+          <Reveal>
+            <Banner />
+          </Reveal>
+          <Reveal delay={0.12}>
+            <SocialLinks />
+          </Reveal>
         </div>
 
         <Reveal>
@@ -32,7 +36,9 @@ export default function Home() {
           <Contributions />
         </Reveal>
 
-        <Footer />
+        <Reveal>
+          <Footer />
+        </Reveal>
       </div>
     </main>
   );

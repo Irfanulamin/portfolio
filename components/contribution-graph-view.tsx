@@ -34,7 +34,13 @@ export function ContributionGraphView({ activities, total }: Props) {
       className="w-full text-cream/40"
     >
       <ContributionGraphCalendar className="overflow-x-visible [&>svg]:h-auto [&>svg]:w-full">
-        {(props) => <ContributionGraphBlock {...props} className={BLOCK_FILL} />}
+        {(props) => (
+          <ContributionGraphBlock
+            {...props}
+            className={`graph-block ${BLOCK_FILL}`}
+            style={{ "--week": props.weekIndex } as React.CSSProperties}
+          />
+        )}
       </ContributionGraphCalendar>
 
       <ContributionGraphFooter className="mt-2 flex items-center text-xs">

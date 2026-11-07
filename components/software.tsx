@@ -5,7 +5,7 @@ import { software } from "@/lib/software";
 export function Software() {
   return (
     <Section id="stack" label="Software" description="What I use daily.">
-      <ul className="stagger dim-siblings flex flex-wrap gap-2">
+      <ul className="stagger stagger-pop dim-siblings flex flex-wrap gap-2">
         {software.map(({ name, Icon, color }, i) => (
           <ToolChip
             key={name}

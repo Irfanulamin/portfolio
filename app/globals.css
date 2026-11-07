@@ -62,7 +62,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-manrope);
+  --font-sans: var(--font-geist);
   --font-mono: var(--font-geist-mono);
 
   --radius-sm: calc(var(--radius) * 0.6);
@@ -149,14 +149,14 @@
   color: var(--black);
 }
 
-/* Experience timeline: the line draws downward once the section scrolls in. */
-[data-revealed] .timeline-line {
+/* Experience timeline: the line draws downward once it reaches the middle of the screen. */
+.timeline-line[data-drawn] {
   transform: scaleY(0);
   transform-origin: top;
 }
 
-[data-revealed="true"] .timeline-line {
-  animation: draw-down 900ms cubic-bezier(0.22, 1, 0.36, 1) 350ms both;
+.timeline-line[data-drawn="true"] {
+  animation: draw-down 1100ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
 }
 
 @keyframes draw-down {
@@ -265,6 +265,124 @@
   transition-delay: 0ms;
 }
 
+/* Timeline spark: once the line has drawn, a small orange light runs down it. */
+.timeline-line[data-drawn]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 3px;
+  height: 14px;
+  translate: -50% 0;
+  border-radius: 9999px;
+  background: linear-gradient(to bottom, transparent, var(--primary));
+  box-shadow: 0 0 8px var(--primary);
+  opacity: 0;
+}
+
+.timeline-line[data-drawn="true"]::after {
+  animation: spark-down 1400ms cubic-bezier(0.65, 0, 0.35, 1) 1250ms both;
+}
+
+@keyframes spark-down {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% - 14px);
+    opacity: 0;
+  }
+}
+
+/* Section headings: the label slides in, the description follows. */
+[data-revealed] .section-label,
+[data-revealed] .section-desc {
+  opacity: 0;
+}
+
+[data-revealed="true"] .section-label {
+  animation: slide-in 600ms cubic-bezier(0.16, 1, 0.3, 1) 250ms both;
+}
+[data-revealed="true"] .section-desc {
+  animation: rise 700ms cubic-bezier(0.16, 1, 0.3, 1) 350ms both;
+}
+
+@keyframes tick-in {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Stack chips pop rather than just rise. */
+[data-revealed="true"] .stagger-pop > * {
+  animation-name: chip-pop;
+  animation-duration: 550ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-delay: calc(var(--index, 0) * 35ms + 200ms);
+}
+
+@keyframes chip-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Contribution squares sweep in week by week, left to right. */
+.graph-block {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+[data-revealed] .graph-block {
+  opacity: 0;
+}
+[data-revealed="true"] .graph-block {
+  animation: block-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--week, 0) * 14ms + 300ms);
+}
+
+@keyframes block-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Footer divider draws from the left. */
+[data-revealed] .footer-rule {
+  transform: scaleX(0);
+  transform-origin: left;
+}
+[data-revealed="true"] .footer-rule {
+  animation: tick-in 1000ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dim-siblings > *,
   .dim-siblings > .wash,
@@ -284,8 +402,25 @@
   [data-revealed="true"] .stagger > * {
     animation: none;
   }
-  [data-revealed] .timeline-line {
+  .timeline-line[data-drawn] {
     transform: none;
+    animation: none;
+  }
+  .timeline-line[data-drawn]::after {
+    display: none;
+  }
+  [data-revealed] .footer-rule {
+    transform: none;
+  }
+  [data-revealed] .section-label,
+  [data-revealed] .section-desc,
+  [data-revealed] .graph-block {
+    opacity: 1;
+  }
+  [data-revealed="true"] .section-label,
+  [data-revealed="true"] .section-desc,
+  [data-revealed="true"] .graph-block,
+  [data-revealed="true"] .footer-rule {
     animation: none;
   }
 }

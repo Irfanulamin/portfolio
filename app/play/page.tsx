@@ -25,7 +25,7 @@ export default function Play() {
                 <h1 className="text-2xl leading-[1.15] font-medium tracking-[-0.02em] text-cream">
                   dot-run
                 </h1>
-                <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-primary">
+                <p className="text-xs font-medium tracking-[0.12em] uppercase text-primary">
                   Sidequest
                 </p>
               </div>

@@ -10,7 +10,7 @@ export function Banner() {
         <h1 className="text-2xl leading-[1.15] font-medium tracking-[-0.02em] text-cream">
           Irfanul Amin Maruf
         </h1>
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary">
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-primary">
           Junior Software Engineer
         </p>
       </div>
